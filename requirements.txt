@@ -3,3 +3,7 @@ numpy
 websocket-client
 matplotlib
 pushbullet.py
+python-dateutil
+pytz
+tzdata
+talib
