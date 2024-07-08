@@ -1,3 +1,4 @@
 libgmp-dev
 libmpfr-dev
 libssl-dev
+libta-lib-dev
