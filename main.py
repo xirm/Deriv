@@ -1,7 +1,7 @@
 import websocket
 import json
-import talib
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from pushbullet import Pushbullet
 
@@ -48,26 +48,45 @@ def on_open(ws):
 
 def calculate_indicators(symbol):
     prices = np.array(close_prices[symbol])
-    connors_rsi = talib.RSI(prices, timeperiod=3)
-    high_prices = np.array(prices[-20:])
-    low_prices = np.array(prices[-20:])
-    donchian_upper = talib.MAX(high_prices, timeperiod=20)
-    donchian_lower = talib.MIN(low_prices, timeperiod=20)
-    chaikin_volatility = talib.ATR(high_prices, low_prices, prices[-20:], timeperiod=10)
+    connors_rsi = calculate_rsi(prices, period=3)
+    high_prices = prices[-20:]
+    low_prices = prices[-20:]
+    donchian_upper = high_prices.max()
+    donchian_lower = low_prices.min()
+    chaikin_volatility = calculate_atr(high_prices, low_prices, prices[-20:], period=10)
 
     # Conditions for a fall market
-    if connors_rsi[-1] < 50 and prices[-1] < donchian_lower[-1] and chaikin_volatility[-1] > 0:
+    if connors_rsi < 50 and prices[-1] < donchian_lower and chaikin_volatility > 0:
         send_alert(f"{symbol} - Fall Market Detected")
         print(f"{symbol} - Fall Market Detected")
-        print(f"Connors RSI: {connors_rsi[-1]}, Donchian Lower: {donchian_lower[-1]}, Chaikin Volatility: {chaikin_volatility[-1]}")
+        print(f"Connors RSI: {connors_rsi}, Donchian Lower: {donchian_lower}, Chaikin Volatility: {chaikin_volatility}")
 
     # Conditions for a rise market
-    if connors_rsi[-1] > 50 and prices[-1] > donchian_upper[-1] and chaikin_volatility[-1] > 0:
+    if connors_rsi > 50 and prices[-1] > donchian_upper and chaikin_volatility > 0:
         send_alert(f"{symbol} - Rise Market Detected")
         print(f"{symbol} - Rise Market Detected")
-        print(f"Connors RSI: {connors_rsi[-1]}, Donchian Upper: {donchian_upper[-1]}, Chaikin Volatility: {chaikin_volatility[-1]}")
+        print(f"Connors RSI: {connors_rsi}, Donchian Upper: {donchian_upper}, Chaikin Volatility: {chaikin_volatility}")
 
-    print(f"{symbol} - Connors RSI: {connors_rsi[-1]}, Donchian Upper: {donchian_upper[-1]}, Donchian Lower: {donchian_lower[-1]}, Chaikin Volatility: {chaikin_volatility[-1]}")
+    print(f"{symbol} - Connors RSI: {connors_rsi}, Donchian Upper: {donchian_upper}, Donchian Lower: {donchian_lower}, Chaikin Volatility: {chaikin_volatility}")
+
+def calculate_rsi(prices, period=14):
+    delta = np.diff(prices)
+    gains = delta[delta >= 0]
+    losses = -delta[delta < 0]
+    avg_gain = np.mean(gains[:period])
+    avg_loss = np.mean(losses[:period])
+    rs = avg_gain / avg_loss
+    return 100 - (100 / (1 + rs))
+
+def calculate_atr(high_prices, low_prices, close_prices, period=14):
+    trs = []
+    for i in range(1, len(close_prices)):
+        tr = max(high_prices[i] - low_prices[i],
+                 abs(high_prices[i] - close_prices[i-1]),
+                 abs(low_prices[i] - close_prices[i-1]))
+        trs.append(tr)
+    atr = np.mean(trs[-period:])
+    return atr
 
 def analyze_odd_even_market(symbol):
     prices = close_prices[symbol]
