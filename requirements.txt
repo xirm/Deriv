@@ -1,3 +1,5 @@
-requests==2.26.0
-numpy==1.21.0
-talib
+pandas
+numpy
+websocket-client
+matplotlib
+pushbullet.py
