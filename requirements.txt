@@ -1,9 +1,5 @@
-pandas
+websocket
+json
 numpy
-websocket-client
+pushbullet
 matplotlib
-pushbullet.py
-python-dateutil
-pytz
-tzdata
-talib
