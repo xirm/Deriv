@@ -1,5 +1,6 @@
-websocket
-json
 numpy
-pushbullet
+pandas
+websocket-client
 matplotlib
+pushbullet.py
+TA-Lib
