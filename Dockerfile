@@ -1,18 +1,26 @@
-# Use the official Python image
+# Use the Python 3.9 image from Docker Hub
 FROM python:3.9-slim
 
-# Set the working directory
+# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
+# Copy the requirements file into the container
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
 
-# Copy the rest of the application code
+# Install necessary build dependencies for TA-Lib and other packages
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code into the container
 COPY . .
 
-# Expose the port the app runs on
-EXPOSE 5000
+# Expose the port your app runs on
+EXPOSE 8080
 
-# Run the application
+# Command to run the application
 CMD ["python", "main.py"]
